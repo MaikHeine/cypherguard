@@ -1,6 +1,6 @@
-# CipherGuard
+# Cypher
 
-CipherGuard is a file encryption and decryption tool with a modern UI built using Python and PyQt5 (WIP). It allows users to securely encrypt and decrypt text files using the `cryptography` library.
+Cypher is a file encryption and decryption tool with a modern UI built using Python and PyQt5 (WIP). It allows users to securely encrypt and decrypt text files using the `cryptography` library.
 
 ## Features
 
@@ -31,15 +31,15 @@ It's a good practice to use a virtual environment to manage dependencies. Follow
 #### On Windows
 
 ```bash
-python -m venv cypherguardvenv
-cypherguardvenv\Scripts\activate
+python -m venv cyphervenv
+cyphervenv\Scripts\activate
 ```
 
 #### On macOS and Linux
 
 ```bash
-python3 -m venv cypherguardvenv
-source cypherguardvenv/bin/activate
+python3 -m venv cyphervenv
+source cyphervenv/bin/activate
 ```
 
 ### 3. Install Requirements
@@ -52,7 +52,7 @@ pip install -r requirements.txt
 
 ## Running the Program
 
-To start the CypherGuard application, run the following command:
+To start the Cypher application, run the following command:
 Make sure you are in the project directory and the virtual environment is activated.
 
 ```bash
