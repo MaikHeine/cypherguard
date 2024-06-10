@@ -3,6 +3,3 @@ cypherguardvenv/
 
 # Ignore the README file
 README
-
-# Ignore requirements.txt file
-requirements.txt
