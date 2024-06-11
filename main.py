@@ -1,46 +1,55 @@
-import sys
-from PyQt5.QtWidgets import QApplication, QMainWindow, QFileDialog, QMessageBox
-from PyQt5.QtWidgets import QLabel, QPushButton, QVBoxLayout, QWidget, QLineEdit
+from PySide6.QtWidgets import (
+    QApplication, QMainWindow, QLabel, QPushButton, QLineEdit, QVBoxLayout, QWidget, QFileDialog, QMessageBox
+)
+from PySide6.QtCore import Qt
+
 from cryptography.fernet import Fernet
 
-class EncryptDecryptApp(QMainWindow):
+class MainWindow(QMainWindow):
     def __init__(self):
         super().__init__()
-        self.initUI()
+        self.setWindowTitle("CypherGuard")
 
-    def initUI(self):
-        self.setWindowTitle('Encrypt & Decrypt Tool')
-        self.setGeometry(100, 100, 600, 400)
+         # Set the initial size of the window
+        self.resize(500, 400)
 
+        # Create widgets
+        self.label = QLabel("Welcome to CypherGuard")
+        self.key_line_edit = QLineEdit()
+        self.key_line_edit.setPlaceholderText("Enter key or leave empty to generate a new key...")
+        self.generate_key_button = QPushButton("Generate Key")
+        self.encrypt_file_button = QPushButton("Encrypt File")
+        self.decrypt_file_button = QPushButton("Decrypt File")
+
+        # Connect signals to slots
+        self.generate_key_button.clicked.connect(self.generate_key)
+        self.encrypt_file_button.clicked.connect(self.encrypt_file)
+        self.decrypt_file_button.clicked.connect(self.decrypt_file)
+
+        # Create layout and add widgets
         layout = QVBoxLayout()
+        layout.addWidget(self.label)
+        layout.addWidget(self.key_line_edit)
+        layout.addWidget(self.generate_key_button)
+        layout.addWidget(self.encrypt_file_button)
+        layout.addWidget(self.decrypt_file_button)
 
-        self.key_input = QLineEdit(self)
-        self.key_input.setPlaceholderText('Enter key or leave empty to generate a new key')
-        layout.addWidget(self.key_input)
-
-        self.generate_key_btn = QPushButton('Generate Key', self)
-        self.generate_key_btn.clicked.connect(self.generate_key)
-        layout.addWidget(self.generate_key_btn)
-
-        self.encrypt_btn = QPushButton('Encrypt File', self)
-        self.encrypt_btn.clicked.connect(self.encrypt_file)
-        layout.addWidget(self.encrypt_btn)
-
-        self.decrypt_btn = QPushButton('Decrypt File', self)
-        self.decrypt_btn.clicked.connect(self.decrypt_file)
-        layout.addWidget(self.decrypt_btn)
-
+        # Create a container widget and set the layout
         container = QWidget()
         container.setLayout(layout)
+
+        # Set the central widget of the main window
         self.setCentralWidget(container)
 
     def generate_key(self):
+        # Generate a key using Fernet
         key = Fernet.generate_key()
-        self.key_input.setText(key.decode())
-        QMessageBox.information(self, 'Key Generated', 'A new key has been generated and set in the key field.')
+
+        # Set the generated key in the QLineEdit
+        self.key_line_edit.setText(key.decode())
 
     def get_key(self):
-        key = self.key_input.text().encode()
+        key = self.key_line_edit.text().encode()
         if not key:
             QMessageBox.warning(self, 'No Key', 'Please enter or generate a key.')
             return None
@@ -48,58 +57,57 @@ class EncryptDecryptApp(QMainWindow):
 
     def encrypt_file(self):
         key = self.get_key()
+
         if not key:
-            return
-        
-        file_path, _ = QFileDialog.getOpenFileName(self, 'Open file to encrypt', '', 'Text Files (*.txt)')
-        if not file_path:
-            return
-        
-        with open(file_path, 'rb') as file:
-            data = file.read()
-
-        fernet = Fernet(key)
-        encrypted_data = fernet.encrypt(data)
-
-        save_path, _ = QFileDialog.getSaveFileName(self, 'Save encrypted file', '', 'Text Files (*.txt)')
-        if not save_path:
+            QMessageBox.warning(self, "Warning", "Please generate or enter a key.")
             return
 
-        with open(save_path, 'wb') as file:
-            file.write(encrypted_data)
+        try:
+            file_path, _ = QFileDialog.getOpenFileName(self, "Select File to Encrypt", "", "All Files (*)")
+            if file_path:
+                with open(file_path, 'rb') as file:
+                    data = file.read()
 
-        QMessageBox.information(self, 'File Encrypted', 'The file has been encrypted and saved.')
+                fernet = Fernet(key)
+                encrypted_data = fernet.encrypt(data)
+
+                encrypted_file_path = file_path + '.encrypted'
+                with open(encrypted_file_path, 'wb') as encrypted_file:
+                    encrypted_file.write(encrypted_data)
+
+                QMessageBox.information(self, "Success", "File encrypted successfully.")
+
+        except Exception as e:
+            QMessageBox.critical(self, "Error", f"An error occurred: {str(e)}")
 
     def decrypt_file(self):
         key = self.get_key()
+
         if not key:
-            return
-        
-        file_path, _ = QFileDialog.getOpenFileName(self, 'Open file to decrypt', '', 'Text Files (*.txt)')
-        if not file_path:
+            QMessageBox.warning(self, "Warning", "Please generate or enter a key.")
             return
 
-        with open(file_path, 'rb') as file:
-            encrypted_data = file.read()
-
-        fernet = Fernet(key)
         try:
-            decrypted_data = fernet.decrypt(encrypted_data)
+            file_path, _ = QFileDialog.getOpenFileName(self, "Select File to Decrypt", "", "Encrypted Files (*.encrypted)")
+            if file_path:
+                with open(file_path, 'rb') as file:
+                    encrypted_data = file.read()
+
+                fernet = Fernet(key)
+                decrypted_data = fernet.decrypt(encrypted_data)
+
+                # Remove the '.encrypted' extension from the file name
+                decrypted_file_path = file_path[:-10]  # assuming '.encrypted' is 10 characters long
+                with open(decrypted_file_path, 'wb') as decrypted_file:
+                    decrypted_file.write(decrypted_data)
+
+                QMessageBox.information(self, "Success", "File decrypted successfully.")
+
         except Exception as e:
-            QMessageBox.critical(self, 'Decryption Failed', 'Invalid key or corrupted file.')
-            return
+            QMessageBox.critical(self, "Error", f"An error occurred: {str(e)}")
 
-        save_path, _ = QFileDialog.getSaveFileName(self, 'Save decrypted file', '', 'Text Files (*.txt)')
-        if not save_path:
-            return
-
-        with open(save_path, 'wb') as file:
-            file.write(decrypted_data)
-
-        QMessageBox.information(self, 'File Decrypted', 'The file has been decrypted and saved.')
-
-if __name__ == '__main__':
-    app = QApplication(sys.argv)
-    ex = EncryptDecryptApp()
-    ex.show()
-    sys.exit(app.exec_())
+if __name__ == "__main__":
+    app = QApplication([])
+    window = MainWindow()
+    window.show()
+    app.exec()
