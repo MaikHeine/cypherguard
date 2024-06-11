@@ -1,13 +1,13 @@
-# Cypher
+# CypherGuard
 
-Cypher is a file encryption and decryption tool with a modern UI built using Python and PyQt5 (WIP). It allows users to securely encrypt and decrypt text files using the `cryptography` library.
+CypherGuard is a file encryption and decryption tool with a modern UI built using Python and PySide6 (WIP). It allows users to securely encrypt and decrypt text files using the `cryptography` library.
 
 ## Features
 
 - Generate encryption keys
 - Encrypt text files
 - Decrypt text files
-- Modern GUI built with PyQt5 (WIP)
+- Modern GUI built with PySide6 (WIP)
 
 ## Prerequisites
 
