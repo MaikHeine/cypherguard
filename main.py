@@ -13,13 +13,9 @@ ctypes.windll.shell32.SetCurrentProcessExplicitAppUserModelID(myappid)
 class MainWindow(QMainWindow):
     def __init__(self):
         super().__init__()
+        # Set the window title and icon
         self.setWindowTitle("CypherGuard")
-
-        # Set the window icon
         self.setWindowIcon(QIcon("icon.ico"))
-
-        # Set the initial size of the window
-        self.resize(500, 400)
 
         # Create widgets
         self.icon_label = QLabel()
@@ -30,37 +26,44 @@ class MainWindow(QMainWindow):
         self.description_label = QLabel("Securely encrypt and decrypt your files with ease and the Fernet algorithm.")
         self.description_label.setAlignment(Qt.AlignCenter)
 
-        # Create a layout for the icon and text
-        icon_text_layout = QHBoxLayout()
-        icon_text_layout.addWidget(self.icon_label)
-        icon_text_layout.addWidget(self.text_label)
-        icon_text_layout.setAlignment(Qt.AlignCenter)
-
         self.key_line_edit = QLineEdit()
         self.key_line_edit.setPlaceholderText("Enter key or leave empty to generate a new key...")
+
         self.generate_key_button = QPushButton("Generate Key")
         self.encrypt_file_button = QPushButton("Encrypt File")
         self.decrypt_file_button = QPushButton("Decrypt File")
+        self.clear_button = QPushButton()
+        self.clear_button.setText("X")
 
         # Connect signals to slots
         self.generate_key_button.clicked.connect(self.generate_key)
         self.encrypt_file_button.clicked.connect(self.encrypt_file)
         self.decrypt_file_button.clicked.connect(self.decrypt_file)
+        self.clear_button.clicked.connect(self.clear_key_line_edit)
 
-        # Create layout and add widgets
+        # Create layouts
+        icon_text_layout = QHBoxLayout()
+        icon_text_layout.addWidget(self.icon_label)
+        icon_text_layout.addWidget(self.text_label)
+        icon_text_layout.setAlignment(Qt.AlignCenter)
+
+        key_layout = QHBoxLayout()
+        key_layout.addWidget(self.key_line_edit)
+        key_layout.addWidget(self.clear_button)
+
         layout = QVBoxLayout()
         layout.addLayout(icon_text_layout)
         layout.addWidget(self.description_label)
-        layout.addWidget(self.key_line_edit)
+        layout.addLayout(key_layout)
         layout.addWidget(self.generate_key_button)
         layout.addWidget(self.encrypt_file_button)
         layout.addWidget(self.decrypt_file_button)
 
-        # Create a container widget and set the layout
+        # Create container widget and set the layout
         container = QWidget()
         container.setLayout(layout)
 
-        # Set the central widget of the main window
+        # Set central widget of the main window
         self.setCentralWidget(container)
 
         # Apply CSS styling
@@ -96,6 +99,7 @@ class MainWindow(QMainWindow):
                 font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             }
             QPushButton {
+                text-align: center;
                 background-color: #000000;
                 color: #FFFFFF;
                 border: 2px solid #007ACC;
@@ -129,6 +133,10 @@ class MainWindow(QMainWindow):
 
         # Set the generated key in the QLineEdit
         self.key_line_edit.setText(key.decode())
+
+    def clear_key_line_edit(self):
+        # Clear the content of the key QLineEdit
+        self.key_line_edit.clear()
 
     def get_key(self):
         key = self.key_line_edit.text().encode()
