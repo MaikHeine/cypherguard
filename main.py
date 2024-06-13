@@ -4,18 +4,22 @@ from PySide6.QtWidgets import (
 from PySide6.QtGui import QIcon, QPixmap
 from PySide6.QtCore import Qt
 from cryptography.fernet import Fernet
-import sys
+import ctypes
+
+# Setting App ID for Windows Taskbar
+myappid = 'cypherguard.1.0'
+ctypes.windll.shell32.SetCurrentProcessExplicitAppUserModelID(myappid)
 
 class MainWindow(QMainWindow):
     def __init__(self):
         super().__init__()
         self.setWindowTitle("CypherGuard")
 
-        # Set the initial size of the window
-        self.resize(500, 400)
-
         # Set the window icon
         self.setWindowIcon(QIcon("icon.ico"))
+
+        # Set the initial size of the window
+        self.resize(500, 400)
 
         # Create widgets
         self.icon_label = QLabel()
@@ -181,7 +185,7 @@ class MainWindow(QMainWindow):
             QMessageBox.critical(self, "Error", f"An error occurred: {str(e)}")
 
 if __name__ == "__main__":
-    app = QApplication(sys.argv)
+    app = QApplication([])
     window = MainWindow()
     window.show()
-    sys.exit(app.exec())
+    app.exec()
