@@ -1,20 +1,37 @@
 from PySide6.QtWidgets import (
-    QApplication, QMainWindow, QLabel, QPushButton, QLineEdit, QVBoxLayout, QWidget, QFileDialog, QMessageBox
+    QApplication, QMainWindow, QLabel, QPushButton, QLineEdit, QVBoxLayout, QHBoxLayout, QWidget, QFileDialog, QMessageBox
 )
+from PySide6.QtGui import QIcon, QPixmap
 from PySide6.QtCore import Qt
-
 from cryptography.fernet import Fernet
+import sys
 
 class MainWindow(QMainWindow):
     def __init__(self):
         super().__init__()
         self.setWindowTitle("CypherGuard")
 
-         # Set the initial size of the window
+        # Set the initial size of the window
         self.resize(500, 400)
 
+        # Set the window icon
+        self.setWindowIcon(QIcon("icon.ico"))
+
         # Create widgets
-        self.label = QLabel("Welcome to CypherGuard")
+        self.icon_label = QLabel()
+        self.icon_label.setPixmap(QPixmap("icon.ico").scaled(64, 64, Qt.KeepAspectRatio, Qt.SmoothTransformation))
+        self.text_label = QLabel("CypherGuard")
+        self.text_label.setAlignment(Qt.AlignCenter)
+
+        self.description_label = QLabel("Securely encrypt and decrypt your files with ease and the Fernet algorithm.")
+        self.description_label.setAlignment(Qt.AlignCenter)
+
+        # Create a layout for the icon and text
+        icon_text_layout = QHBoxLayout()
+        icon_text_layout.addWidget(self.icon_label)
+        icon_text_layout.addWidget(self.text_label)
+        icon_text_layout.setAlignment(Qt.AlignCenter)
+
         self.key_line_edit = QLineEdit()
         self.key_line_edit.setPlaceholderText("Enter key or leave empty to generate a new key...")
         self.generate_key_button = QPushButton("Generate Key")
@@ -28,7 +45,8 @@ class MainWindow(QMainWindow):
 
         # Create layout and add widgets
         layout = QVBoxLayout()
-        layout.addWidget(self.label)
+        layout.addLayout(icon_text_layout)
+        layout.addWidget(self.description_label)
         layout.addWidget(self.key_line_edit)
         layout.addWidget(self.generate_key_button)
         layout.addWidget(self.encrypt_file_button)
@@ -40,6 +58,66 @@ class MainWindow(QMainWindow):
 
         # Set the central widget of the main window
         self.setCentralWidget(container)
+
+        # Apply CSS styling
+        self.apply_styles()
+
+    def apply_styles(self):
+        self.setStyleSheet("""
+            QMainWindow {
+                background-color: #000000;
+            }
+            QLabel {
+                color: #FFFFFF;
+                font-size: 28px;
+                font-weight: bold;
+                margin: 20px, 20px 0px 20px;
+                font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            }
+            QLabel[description=true] {
+                font-size: 16px;
+                font-weight: normal;
+                margin: 5px 20px 20px 20px;
+                line-height: 20px;
+                font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            }
+            QLineEdit {
+                background-color: #000000;
+                color: #FFFFFF;
+                border: 2px solid #444444;
+                border-radius: 10px;
+                padding: 10px;
+                font-size: 16px;
+                margin: 10px;
+                font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            }
+            QPushButton {
+                background-color: #000000;
+                color: #FFFFFF;
+                border: 2px solid #007ACC;
+                border-radius: 10px;
+                padding: 10px;
+                font-size: 16px;
+                margin: 10px;
+                font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            }
+            QPushButton:hover {
+                background-color: #1a1a1a;
+            }
+            QPushButton:pressed {
+                background-color: #1f1f1f;
+            }
+            QPushButton:disabled {
+                background-color: #333333;
+                color: #777777;
+            }
+            QMessageBox {
+                background-color: #1E1E1E;
+                color: #FFFFFF;
+                font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            }
+        """)
+        self.description_label.setProperty('description', True)
 
     def generate_key(self):
         # Generate a key using Fernet
@@ -57,10 +135,6 @@ class MainWindow(QMainWindow):
 
     def encrypt_file(self):
         key = self.get_key()
-
-        if not key:
-            QMessageBox.warning(self, "Warning", "Please generate or enter a key.")
-            return
 
         try:
             file_path, _ = QFileDialog.getOpenFileName(self, "Select File to Encrypt", "", "All Files (*)")
@@ -107,7 +181,7 @@ class MainWindow(QMainWindow):
             QMessageBox.critical(self, "Error", f"An error occurred: {str(e)}")
 
 if __name__ == "__main__":
-    app = QApplication([])
+    app = QApplication(sys.argv)
     window = MainWindow()
     window.show()
-    app.exec()
+    sys.exit(app.exec())
