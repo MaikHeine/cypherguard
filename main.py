@@ -147,50 +147,47 @@ class MainWindow(QMainWindow):
 
     def encrypt_file(self):
         key = self.get_key()
+        if key:
+            try:
+                file_path, _ = QFileDialog.getOpenFileName(self, "Select File to Encrypt", "", "All Files (*)")
+                if file_path:
+                    with open(file_path, 'rb') as file:
+                        data = file.read()
 
-        try:
-            file_path, _ = QFileDialog.getOpenFileName(self, "Select File to Encrypt", "", "All Files (*)")
-            if file_path:
-                with open(file_path, 'rb') as file:
-                    data = file.read()
+                    fernet = Fernet(key)
+                    encrypted_data = fernet.encrypt(data)
 
-                fernet = Fernet(key)
-                encrypted_data = fernet.encrypt(data)
+                    encrypted_file_path = file_path + '.encrypted'
+                    with open(encrypted_file_path, 'wb') as encrypted_file:
+                        encrypted_file.write(encrypted_data)
 
-                encrypted_file_path = file_path + '.encrypted'
-                with open(encrypted_file_path, 'wb') as encrypted_file:
-                    encrypted_file.write(encrypted_data)
+                    QMessageBox.information(self, "Success", "File encrypted successfully.")
 
-                QMessageBox.information(self, "Success", "File encrypted successfully.")
-
-        except Exception as e:
-            QMessageBox.critical(self, "Error", f"An error occurred: {str(e)}")
+            except Exception as e:
+                QMessageBox.critical(self, "Error", f"An error occurred: {str(e)}")
 
     def decrypt_file(self):
         key = self.get_key()
 
-        if not key:
-            QMessageBox.warning(self, "Warning", "Please generate or enter a key.")
-            return
+        if key:
+            try:
+                file_path, _ = QFileDialog.getOpenFileName(self, "Select File to Decrypt", "", "All Files (*)")
+                if file_path:
+                    with open(file_path, 'rb') as file:
+                        encrypted_data = file.read()
 
-        try:
-            file_path, _ = QFileDialog.getOpenFileName(self, "Select File to Decrypt", "", "Encrypted Files (*.encrypted)")
-            if file_path:
-                with open(file_path, 'rb') as file:
-                    encrypted_data = file.read()
+                    fernet = Fernet(key)
+                    decrypted_data = fernet.decrypt(encrypted_data)
 
-                fernet = Fernet(key)
-                decrypted_data = fernet.decrypt(encrypted_data)
+                    # Remove the '.encrypted' extension from the file name
+                    decrypted_file_path = file_path[:-10]  # assuming '.encrypted' is 10 characters long
+                    with open(decrypted_file_path, 'wb') as decrypted_file:
+                        decrypted_file.write(decrypted_data)
 
-                # Remove the '.encrypted' extension from the file name
-                decrypted_file_path = file_path[:-10]  # assuming '.encrypted' is 10 characters long
-                with open(decrypted_file_path, 'wb') as decrypted_file:
-                    decrypted_file.write(decrypted_data)
+                    QMessageBox.information(self, "Success", "File decrypted successfully.")
 
-                QMessageBox.information(self, "Success", "File decrypted successfully.")
-
-        except Exception as e:
-            QMessageBox.critical(self, "Error", f"An error occurred: {str(e)}")
+            except Exception as e:
+                QMessageBox.critical(self, "Error", f"An error occurred: {str(e)}")
 
 if __name__ == "__main__":
     app = QApplication([])
