@@ -1,5 +1,5 @@
 from PySide6.QtWidgets import (
-    QApplication, QMainWindow, QLabel, QPushButton, QLineEdit, QVBoxLayout, QHBoxLayout, QWidget, QFileDialog, QMessageBox
+    QApplication, QMainWindow, QLabel, QPushButton, QLineEdit, QVBoxLayout, QHBoxLayout, QWidget, QFileDialog, QMessageBox, QComboBox
 )
 from PySide6.QtGui import QIcon, QPixmap
 from PySide6.QtCore import Qt
@@ -29,6 +29,12 @@ class MainWindow(QMainWindow):
         self.key_line_edit = QLineEdit()
         self.key_line_edit.setPlaceholderText("Enter key or leave empty to generate a new key...")
 
+        self.encryption_algorithm_combobox = QComboBox()
+        self.encryption_algorithm_combobox.addItem("Fernet")
+        self.encryption_algorithm_combobox.addItem("AES")
+        self.encryption_algorithm_combobox.addItem("RSA")
+        self.encryption_algorithm_combobox.addItem("SHA-256")
+
         self.generate_key_button = QPushButton("Generate Key")
         self.encrypt_file_button = QPushButton("Encrypt File")
         self.decrypt_file_button = QPushButton("Decrypt File")
@@ -48,6 +54,7 @@ class MainWindow(QMainWindow):
         icon_text_layout.setAlignment(Qt.AlignCenter)
 
         key_layout = QHBoxLayout()
+        key_layout.addWidget(self.encryption_algorithm_combobox)
         key_layout.addWidget(self.key_line_edit)
         key_layout.addWidget(self.clear_button)
 
@@ -69,6 +76,12 @@ class MainWindow(QMainWindow):
         # Apply CSS styling
         self.apply_styles()
 
+        # Change cursor to pointer
+        self.generate_key_button.setCursor(Qt.PointingHandCursor)
+        self.encrypt_file_button.setCursor(Qt.PointingHandCursor)
+        self.decrypt_file_button.setCursor(Qt.PointingHandCursor)
+        self.clear_button.setCursor(Qt.PointingHandCursor)
+
     def apply_styles(self):
         self.setStyleSheet("""
             QMainWindow {
@@ -88,6 +101,24 @@ class MainWindow(QMainWindow):
                 line-height: 20px;
                 font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             }
+            QComboBox {
+                background-color: #000000;
+                color: #FFFFFF;
+                border: 2px solid #444444;
+                border-radius: 10px;
+                padding: 10px;
+                margin: 10px;
+                font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
+            }
+            QComboBox QAbstractItemView {
+                background-color: #000000;
+                color: #FFFFFF;
+                padding: 10px;
+                border: 2px solid #444444;
+                border-radius: 10px;
+                selection-background-color: #1a1a1a;
+                selection-color: #FFFFFF;
+            }
             QLineEdit {
                 background-color: #000000;
                 color: #FFFFFF;
@@ -102,7 +133,7 @@ class MainWindow(QMainWindow):
                 text-align: center;
                 background-color: #000000;
                 color: #FFFFFF;
-                border: 2px solid #007ACC;
+                border: 2px solid #ffffff;
                 border-radius: 10px;
                 padding: 10px;
                 font-size: 16px;
@@ -171,7 +202,7 @@ class MainWindow(QMainWindow):
 
         if key:
             try:
-                file_path, _ = QFileDialog.getOpenFileName(self, "Select File to Decrypt", "", "All Files (*)")
+                file_path, _ = QFileDialog.getOpenFileName(self, "Select File to Decrypt", "", "Encrypted Files (*encrypted)")
                 if file_path:
                     with open(file_path, 'rb') as file:
                         encrypted_data = file.read()
