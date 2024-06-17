@@ -3,3 +3,6 @@ cypherguardvenv/
 
 # Ignore the README file
 README
+
+# Python specific
+__pycache__/

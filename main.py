@@ -1,10 +1,16 @@
+import sys
 from PySide6.QtWidgets import (
-    QApplication, QMainWindow, QLabel, QPushButton, QLineEdit, QVBoxLayout, QHBoxLayout, QWidget, QFileDialog, QMessageBox, QComboBox
+    QApplication, QMainWindow, QLabel, QPushButton, QLineEdit, QTextEdit, QVBoxLayout, QHBoxLayout, QWidget, QFileDialog, QMessageBox, QComboBox
 )
 from PySide6.QtGui import QIcon, QPixmap
 from PySide6.QtCore import Qt
-from cryptography.fernet import Fernet
 import ctypes
+
+# Import your encryption classes
+from encryption_algorithms.fernet import FernetEncryption
+from encryption_algorithms.aes import AESEncryption
+from encryption_algorithms.rsa import RSAEncryption
+from encryption_algorithms.sha256 import SHA256Hashing
 
 # Setting App ID for Windows Taskbar
 myappid = 'cypherguard.1.0'
@@ -16,6 +22,9 @@ class MainWindow(QMainWindow):
         # Set the window title and icon
         self.setWindowTitle("CypherGuard")
         self.setWindowIcon(QIcon("icon.ico"))
+
+        # Set initial window size
+        #self.resize(800, 600)  # Width: 800, Height: 600
 
         # Create widgets
         self.icon_label = QLabel()
@@ -29,11 +38,14 @@ class MainWindow(QMainWindow):
         self.key_line_edit = QLineEdit()
         self.key_line_edit.setPlaceholderText("Enter key or leave empty to generate a new key...")
 
+        self.key_text_edit = QTextEdit()
+        self.key_text_edit.setPlaceholderText("Enter key or leave empty to generate a new key...")
+        self.key_text_edit.setVisible(False)  # Hide by default
+
         self.encryption_algorithm_combobox = QComboBox()
         self.encryption_algorithm_combobox.addItem("Fernet")
         self.encryption_algorithm_combobox.addItem("AES")
         self.encryption_algorithm_combobox.addItem("RSA")
-        self.encryption_algorithm_combobox.addItem("SHA-256")
 
         self.generate_key_button = QPushButton("Generate Key")
         self.encrypt_file_button = QPushButton("Encrypt File")
@@ -46,6 +58,7 @@ class MainWindow(QMainWindow):
         self.encrypt_file_button.clicked.connect(self.encrypt_file)
         self.decrypt_file_button.clicked.connect(self.decrypt_file)
         self.clear_button.clicked.connect(self.clear_key_line_edit)
+        self.encryption_algorithm_combobox.currentTextChanged.connect(self.switch_key_input)
 
         # Create layouts
         icon_text_layout = QHBoxLayout()
@@ -56,6 +69,7 @@ class MainWindow(QMainWindow):
         key_layout = QHBoxLayout()
         key_layout.addWidget(self.encryption_algorithm_combobox)
         key_layout.addWidget(self.key_line_edit)
+        key_layout.addWidget(self.key_text_edit)
         key_layout.addWidget(self.clear_button)
 
         layout = QVBoxLayout()
@@ -110,16 +124,7 @@ class MainWindow(QMainWindow):
                 margin: 10px;
                 font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
             }
-            QComboBox QAbstractItemView {
-                background-color: #000000;
-                color: #FFFFFF;
-                padding: 10px;
-                border: 2px solid #444444;
-                border-radius: 10px;
-                selection-background-color: #1a1a1a;
-                selection-color: #FFFFFF;
-            }
-            QLineEdit {
+            QLineEdit, QTextEdit {
                 background-color: #000000;
                 color: #FFFFFF;
                 border: 2px solid #444444;
@@ -158,70 +163,124 @@ class MainWindow(QMainWindow):
         """)
         self.description_label.setProperty('description', True)
 
-    def generate_key(self):
-        # Generate a key using Fernet
-        key = Fernet.generate_key()
+    def switch_key_input(self):
+        if self.encryption_algorithm_combobox.currentText() == "RSA":
+            self.key_line_edit.setVisible(False)
+            self.key_text_edit.setVisible(True)
+        else:
+            self.key_line_edit.setVisible(True)
+            self.key_text_edit.setVisible(False)
 
-        # Set the generated key in the QLineEdit
-        self.key_line_edit.setText(key.decode())
+    def generate_key(self):
+        algorithm = self.encryption_algorithm_combobox.currentText()
+        if algorithm == "Fernet":
+            encryption = FernetEncryption()
+        elif algorithm == "AES":
+            encryption = AESEncryption()
+        elif algorithm == "RSA":
+            encryption = RSAEncryption()
+        else:
+            encryption = None
+        
+        if encryption:
+            if algorithm == "RSA":
+                self.key_text_edit.setPlainText(encryption.get_key())
+            else:
+                self.key_line_edit.setText(encryption.get_key())
 
     def clear_key_line_edit(self):
-        # Clear the content of the key QLineEdit
         self.key_line_edit.clear()
+        self.key_text_edit.clear()
 
     def get_key(self):
-        key = self.key_line_edit.text().encode()
+        algorithm = self.encryption_algorithm_combobox.currentText()
+        if algorithm == "RSA":
+            key = self.key_text_edit.toPlainText()
+        else:
+            key = self.key_line_edit.text()
+
         if not key:
             QMessageBox.warning(self, 'No Key', 'Please enter or generate a key.')
             return None
+        
+        if algorithm in ["AES", "RSA"]:
+            key = key.encode()  # Encoding only for AES and RSA
         return key
 
     def encrypt_file(self):
+        algorithm = self.encryption_algorithm_combobox.currentText()
         key = self.get_key()
+        encryption = None
         if key:
             try:
-                file_path, _ = QFileDialog.getOpenFileName(self, "Select File to Encrypt", "", "All Files (*)")
-                if file_path:
-                    with open(file_path, 'rb') as file:
-                        data = file.read()
+                if algorithm == "Fernet":
+                    encryption = FernetEncryption(key)
+                elif algorithm == "AES":
+                    encryption = AESEncryption(key)
+                elif algorithm == "RSA":
+                    encryption = RSAEncryption(key)
+                else:
+                    encryption = None
 
-                    fernet = Fernet(key)
-                    encrypted_data = fernet.encrypt(data)
+                if encryption:
+                    file_path, _ = QFileDialog.getOpenFileName(self, "Select File to Encrypt", "", "All Files (*)")
+                    if file_path:
+                        with open(file_path, 'rb') as file:
+                            data = file.read()
 
-                    encrypted_file_path = file_path + '.encrypted'
-                    with open(encrypted_file_path, 'wb') as encrypted_file:
-                        encrypted_file.write(encrypted_data)
+                        encrypted_data = encryption.encrypt(data)
 
-                    QMessageBox.information(self, "Success", "File encrypted successfully.")
+                        encrypted_file_path = file_path + '.encrypted'
+                        with open(encrypted_file_path, 'wb') as encrypted_file:
+                            encrypted_file.write(encrypted_data)
+
+                        QMessageBox.information(self, "Success", "File encrypted successfully.")
+
+            except ValueError as e:
+                QMessageBox.critical(self, "Error", f"An error occurred: {str(e)}")
 
             except Exception as e:
                 QMessageBox.critical(self, "Error", f"An error occurred: {str(e)}")
+
 
     def decrypt_file(self):
+        algorithm = self.encryption_algorithm_combobox.currentText()
         key = self.get_key()
-
+        encryption = None
         if key:
             try:
-                file_path, _ = QFileDialog.getOpenFileName(self, "Select File to Decrypt", "", "Encrypted Files (*encrypted)")
-                if file_path:
-                    with open(file_path, 'rb') as file:
-                        encrypted_data = file.read()
+                if algorithm == "Fernet":
+                    encryption = FernetEncryption(key)
+                elif algorithm == "AES":
+                    encryption = AESEncryption(key)
+                elif algorithm == "RSA":
+                    encryption = RSAEncryption(key)
+                else:
+                    encryption = None
 
-                    fernet = Fernet(key)
-                    decrypted_data = fernet.decrypt(encrypted_data)
+                if encryption:
+                    file_path, _ = QFileDialog.getOpenFileName(self, "Select File to Decrypt", "", "All Files (*)")
+                    if file_path:
+                        with open(file_path, 'rb') as file:
+                            encrypted_data = file.read()
 
-                    # Remove the '.encrypted' extension from the file name
-                    decrypted_file_path = file_path[:-10]  # assuming '.encrypted' is 10 characters long
-                    with open(decrypted_file_path, 'wb') as decrypted_file:
-                        decrypted_file.write(decrypted_data)
+                        decrypted_data = encryption.decrypt(encrypted_data)
 
-                    QMessageBox.information(self, "Success", "File decrypted successfully.")
+                        decrypted_file_path = file_path.replace('.encrypted', '')
+                        with open(decrypted_file_path, 'wb') as decrypted_file:
+                            decrypted_file.write(decrypted_data)
+
+                        QMessageBox.information(self, "Success", "File decrypted successfully.")
+
+            except ValueError as e:
+                QMessageBox.critical(self, "Error", f"An error occurred: {str(e)}")
 
             except Exception as e:
                 QMessageBox.critical(self, "Error", f"An error occurred: {str(e)}")
 
+
 if __name__ == "__main__":
-    app = QApplication([])
+    app = QApplication(sys.argv)
     window = MainWindow()
     window.show()
-    app.exec()
+    sys.exit(app.exec())

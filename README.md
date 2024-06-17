@@ -1,13 +1,13 @@
 # CypherGuard
 
-CypherGuard is a file encryption and decryption tool with a modern UI built using Python and PySide6 (WIP). It allows users to securely encrypt and decrypt text files using `Fernet`, a encryption algorithm found in the `cryptography` library.
+CypherGuard is a file encryption and decryption tool with a modern UI built using Python and PySide6. It allows users to securely encrypt and decrypt text files using `Fernet`, `RSA` and `AES`.
 
 ## Features
 
-- Generate `Fernet` encryption keys
+- Generate `Fernet`, `RSA` and `AES`. encryption keys
 - Encrypt files
 - Decrypt files
-- Modern UI built with PySide6 (WIP)
+- Modern UI built with PySide6
 
 ## Prerequisites
 
@@ -61,8 +61,9 @@ python main.py
 
 ## Usage
 
-1. **Generate Key:** Click on "Generate Key" to create a new `Fernet` encryption key.
-2. **Encrypt File:** Click on "Encrypt File" to select a file you wish to encrypt.
-3. **Decrypt File:** Click on "Decrypt File" to select an encrypted file you wish to decrypt.
+1. **Select Encryption Method:** Click on the ComboBox to select your Encryption Method. 
+2. **Generate Key:** Click on "Generate Key" to create a new encryption key.
+3. **Encrypt File:** Click on "Encrypt File" to select a file you wish to encrypt.
+4. **Decrypt File:** Click on "Decrypt File" to select an encrypted file you wish to decrypt.
 
 
