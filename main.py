@@ -10,7 +10,7 @@ import ctypes
 from encryption_algorithms.fernet import FernetEncryption
 from encryption_algorithms.aes import AESEncryption
 from encryption_algorithms.rsa import RSAEncryption
-from encryption_algorithms.sha256 import SHA256Hashing
+#from encryption_algorithms.sha256 import SHA256Hashing
 
 # Setting App ID for Windows Taskbar
 myappid = 'cypherguard.1.0'
