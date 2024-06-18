@@ -1,8 +1,18 @@
 # Ignore the virtual environment folder
-cypherguardvenv/
+/cypherguardvenv/
 
 # Ignore the README file
 README
 
 # Python specific
-__pycache__/
+/__pycache__/
+/encryption_algorithms/__pycache__/
+
+# PyInstaller
+/CypherGuard.spec
+/dist/
+/build/
+/*.exe
+/*.spec
+/*.zip
+/*.tar.gz
